@@ -1,0 +1,11 @@
+# audio corpora: downloaded via mirdata, NOT redistributable
+data/
+# environment and local artifacts
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+# the paper itself stays out of the review repo (double-blind; submitted via CMT)
+paper/
+abstract.md
+LAMIR2026_template.tex

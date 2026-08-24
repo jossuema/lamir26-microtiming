@@ -1,0 +1,67 @@
+{
+  "anchor": "causal-RMS attack start (validated <1ms on synthetic pulses)",
+  "gate_db": 20.0,
+  "scope": "corrects RAW cross-role comparisons within BRID only; centered profiles are invariant to constant per-band offsets, so cross-genre claims stay centered + like-register and need no correction; transfer to candombe requires band_driven=true AND pseudo-mixture validation (script 04)",
+  "role_latency_ms": {
+    "surdo": {
+      "latency_ms": 32.87803453112437,
+      "n_tracks": 26
+    },
+    "caixa_mid": {
+      "latency_ms": 29.509601679518994,
+      "n_tracks": 17
+    },
+    "tamborim": {
+      "latency_ms": 29.657416019309935,
+      "n_tracks": 19
+    }
+  },
+  "transfer": {
+    "surdo": {
+      "spread_ms": 29.69310752388532,
+      "n_instruments": 8,
+      "band_driven": false
+    },
+    "caixa_mid": {
+      "spread_ms": 15.400259981346643,
+      "n_instruments": 10,
+      "band_driven": false
+    },
+    "tamborim": {
+      "spread_ms": 9.988711620945168,
+      "n_instruments": 9,
+      "band_driven": false
+    }
+  },
+  "per_instrument_band_ms": {
+    "Agogo|caixa_mid": 27.220652033143942,
+    "Agogo|surdo": 32.72457052250333,
+    "Agogo|tamborim": 27.91131077980502,
+    "Caixa|caixa_mid": 29.509601679518994,
+    "Caixa|surdo": 11.607816349081812,
+    "Caixa|tamborim": 34.04965725074849,
+    "Cuica|caixa_mid": 33.09695223291453,
+    "Cuica|surdo": 27.2514052618118,
+    "Cuica|tamborim": 33.075227110293426,
+    "Pandeiro|caixa_mid": 29.287675156886017,
+    "Pandeiro|surdo": 28.884005860136174,
+    "Pandeiro|tamborim": 32.862698215474495,
+    "Reco-reco|caixa_mid": 32.26327307910948,
+    "Reco-reco|surdo": 41.30092387296713,
+    "Reco-reco|tamborim": 32.971335629216725,
+    "Repique|caixa_mid": 29.0664538883032,
+    "Repique|surdo": 27.971153562030835,
+    "Repique|tamborim": 29.40672712261083,
+    "Shaker|caixa_mid": 42.620912014490585,
+    "Shaker|surdo": 41.26096022642622,
+    "Shaker|tamborim": 37.90002240075019,
+    "Surdo|caixa_mid": 31.1345811874153,
+    "Surdo|surdo": 32.87803453112437,
+    "Tamborim|caixa_mid": 27.88128486025654,
+    "Tamborim|surdo": 32.497836781196554,
+    "Tamborim|tamborim": 29.657416019309935,
+    "Tanta|caixa_mid": 31.288016723667766,
+    "Tanta|surdo": 33.80157465972644,
+    "Tanta|tamborim": 30.79872742802103
+  }
+}

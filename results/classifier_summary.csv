@@ -1,0 +1,19 @@
+sample,model,lopo_bal,lopo_auc,stat,exact_p
+complete-case,timing,0.8232930672268908,0.8443090569561157,,
+complete-case,BPM,0.8905462184873949,0.9515713507625273,,
+complete-case,timing+BPM,0.9262254901960785,0.9710280501089326,,
+complete-case,timing (RF),0.783779761904762,0.8113469693432928,,
+complete-case,timing perm,,,0.8260504201680672,0.024242424242424242
+complete-case,BPM perm,,,0.8905462184873949,0.006060606060606061
+complete-case,delta perm,,,0.022478991596638687,0.2909090909090909
+complete-case,session-pairwise candombe,0.9642857142857143,,,
+complete-case,session-pairwise samba,0.5811002178649237,,,
+full-data (imputed),timing,0.8274801587301588,0.849701158002981,,
+full-data (imputed),BPM,0.8728174603174603,0.9345103961107086,,
+full-data (imputed),timing+BPM,0.9112103174603174,0.9428251640313409,,
+full-data (imputed),timing (RF),0.7946428571428572,0.8349513734502368,,
+complete-case,timing no-high,0.812937675070028,0.8113036881419236,,
+full-data,missingness-only,0.6166666666666667,0.6238197237279244,,
+complete-case,ablation drop-low,,,0.07962184873949574,
+complete-case,ablation drop-mid,,,-0.02941176470588247,
+complete-case,ablation drop-high,,,0.006512605042016784,
