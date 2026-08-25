@@ -82,12 +82,12 @@ def fig_effects():
     x = np.arange(len(er))
     colors, labels = [], []
     for r in er.itertuples():
-        hp = ea.loc[(r.register, r.contrast), "holm_p"]
-        colors.append("#14675A" if hp < 0.05 else "#C4CBBF")
+        core = bool(ea.loc[(r.register, r.contrast), "robust_core"])
+        colors.append("#14675A" if core else "#C4CBBF")
         labels.append(f"{r.register}\n{r.contrast}")
     ax.bar(x, er.hedges_g, color=colors, width=0.62)
     for i, r in enumerate(er.itertuples()):
-        hp = ea.loc[(r.register, r.contrast), "holm_p"]
+        hp = ea.loc[(r.register, r.contrast), "holm_cr1"]
         off = 0.08 if r.hedges_g >= 0 else -0.22
         ax.text(i, r.hedges_g + off, f"{hp:.2f}", ha="center", fontsize=7)
     ax.axhline(0, color="gray", lw=0.7)

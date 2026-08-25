@@ -121,16 +121,77 @@ def session_perm_p(values: pd.Series, sessions: pd.Series, genres: pd.Series,
         if bpm is None:
             sm = df.groupby("s").v.mean()
             return sm[~sm.index.isin(samba_set)].mean() - sm[sm.index.isin(samba_set)].mean()
+        y = df.v.to_numpy(float)
         x = np.column_stack([
             np.ones(len(df)), lab.to_numpy(float), df.bpm.to_numpy(float)
         ])
-        beta, *_ = np.linalg.lstsq(x, df.v.to_numpy(float), rcond=None)
+        beta, *_ = np.linalg.lstsq(x, y, rcond=None)
         return -beta[1]  # candombe minus samba
 
     obs = stat(true_samba)
     perms = [stat(frozenset(c)) for c in combinations(sess, k)]
     p = float(np.mean([abs(s) >= abs(obs) - 1e-12 for s in perms]))
     return float(obs), p
+
+
+def ancova_multiverse(values, sessions, genres, bpm) -> dict:
+    """Exact session-label permutation ANCOVA under four statistic choices.
+
+    All four are exact tests of the sharp null (session-label
+    exchangeability); they differ as PIVOTS for the clustered design:
+      coef — raw track-level genre coefficient (the pre-registered choice);
+      cr1  — coefficient / CR1 cluster-robust SE (clusters = sessions);
+      agg  — genre coefficient of the session-aggregated regression
+             (one observation per session; respects clustering by design);
+      hc3  — coefficient / HC3 SE (assumes independent observations —
+             mismatched to this clustered design; completeness only).
+    Returns the observed raw coefficient (% of beat) and the four p values.
+    """
+    df = pd.DataFrame({"v": np.asarray(values, float),
+                       "s": np.asarray(sessions),
+                       "g": np.asarray(genres),
+                       "bpm": np.asarray(bpm, float)}).dropna()
+    sess = sorted(df.s.unique())
+    true_samba = frozenset(df.loc[df.g == "samba", "s"].unique())
+
+    def fit(lab):
+        y = df.v.to_numpy()
+        x = np.column_stack([np.ones(len(df)), lab, df.bpm.to_numpy()])
+        xtx = np.linalg.inv(x.T @ x)
+        b = xtx @ x.T @ y
+        e = y - x @ b
+        h = np.einsum("ij,jk,ik->i", x, xtx, x)
+        hc3 = xtx @ (x.T * (e / np.clip(1 - h, 1e-8, None)) ** 2) @ x @ xtx
+        meat = np.zeros((3, 3))
+        for s_id in df.s.unique():
+            m = (df.s == s_id).to_numpy()
+            u = x[m].T @ e[m]
+            meat += np.outer(u, u)
+        K, n = df.s.nunique(), len(df)
+        cr1 = xtx @ meat @ xtx * (K / (K - 1)) * ((n - 1) / (n - 3))
+        return (b[1], b[1] / np.sqrt(max(hc3[1, 1], 1e-12)),
+                b[1] / np.sqrt(max(cr1[1, 1], 1e-12)))
+
+    def agg_fit(ss):
+        a = df.groupby("s").agg(v=("v", "mean"), bpm=("bpm", "mean"))
+        a["l"] = [float(s in ss) for s in a.index]
+        x = np.column_stack([np.ones(len(a)), a.l.to_numpy(), a.bpm.to_numpy()])
+        b, *_ = np.linalg.lstsq(x, a.v.to_numpy(), rcond=None)
+        return b[1]
+
+    obs, nulls = None, {k: [] for k in ["coef", "hc3", "cr1", "agg"]}
+    for c in combinations(sess, len(true_samba)):
+        ss = frozenset(c)
+        lab = df.s.isin(ss).to_numpy(float)
+        co, t3, tc = fit(lab)
+        row = dict(coef=co, hc3=t3, cr1=tc, agg=agg_fit(ss))
+        if ss == true_samba:
+            obs = row
+        for k in nulls:
+            nulls[k].append(row[k])
+    p = {f"p_{k}": float(np.mean([abs(v) >= abs(obs[k]) - 1e-12 for v in nulls[k]]))
+         for k in nulls}
+    return dict(stat=-obs["coef"], **p)
 
 
 def holm(pvals: list[float]) -> list[float]:
@@ -178,19 +239,33 @@ def main() -> None:
 
     # ---------------- A2. primary tempo control: permutation ANCOVA ---------
     print("\nA2. TEMPO-CONTROLLED cross-genre (permutation ANCOVA: value ~ genre + BPM)")
+    print("    Multiverse of permuted statistics — all exact under session-label")
+    print("    exchangeability; they differ as pivots for the clustered design:")
+    print("    coef  = raw track-level genre coefficient (pre-registered)")
+    print("    CR1-t = coefficient / cluster-robust SE (clusters = sessions)")
+    print("    agg   = coefficient of the session-aggregated regression (11 obs)")
+    print("    [HC3-t, independence-assuming, is reported for completeness only:")
+    print("     it is mismatched to the clustered design]")
     a2_tests = []
     for reg, band_c, band_s in REGISTER_PAIRS:
         both = pd.concat([pt_c[pt_c.band == band_c], pt_b[pt_b.band == band_s]])
         for cname, cf in CONTRASTS.items():
-            v = cf(both)
-            obs, p = session_perm_p(v, both.session, both.genre, bpm=both.mean_bpm)
+            r = ancova_multiverse(cf(both), both.session, both.genre, both.mean_bpm)
             a2_tests.append(dict(section="cross_genre_ancova", register=reg,
-                                 contrast=cname, stat=obs, perm_p=p))
-    for t, adj in zip(a2_tests, holm([t["perm_p"] for t in a2_tests])):
-        t["holm_p"] = adj
+                                 contrast=cname, **r))
+    for key in ["p_coef", "p_cr1", "p_agg", "p_hc3"]:
+        adj = holm([t[key] for t in a2_tests])
+        for t, a in zip(a2_tests, adj):
+            t["holm_" + key[2:]] = a
+    for t in a2_tests:
+        t["robust_core"] = all(t[f"holm_{k}"] < 0.05 for k in ["coef", "cr1", "agg"])
         rows.append(t)
-        print(f"  {t['register']:4s} {t['contrast']:5s}: genre coef={t['stat']:+.2f}%  "
-              f"perm p={t['perm_p']:.3f}  Holm p={adj:.3f} {'*' if adj < 0.05 else 'ns'}")
+        core = " CORE" if t["robust_core"] else ""
+        print(f"  {t['register']:4s} {t['contrast']:5s}: coef={t['stat']:+.2f}%  "
+              f"Holm p (coef/CR1/agg/HC3) = {t['holm_coef']:.3f}/{t['holm_cr1']:.3f}/"
+              f"{t['holm_agg']:.3f}/{t['holm_hc3']:.3f}{core}")
+    n_core = sum(t["robust_core"] for t in a2_tests)
+    print(f"  robust core (Holm<0.05 under coef AND CR1 AND agg): {n_core}/6")
 
     # sensitivity (labeled, not confirmatory): BPM-overlap subset composition
     lo = max(pt_c.mean_bpm.min(), pt_b.mean_bpm.min())
@@ -302,9 +377,10 @@ def main() -> None:
     ea = {(r["register"], r["contrast"]): r for r in rows
           if r["section"] == "cross_genre_ancova"}
     x = np.arange(len(er))
-    # color = the PRIMARY inference (tempo-controlled permutation ANCOVA)
+    # dark = robust core: Holm-significant under ALL cluster-respecting
+    # permuted statistics (raw coef, CR1-studentized, session-aggregated)
     colors = [
-        "#14675A" if ea[(r["register"], r["contrast"])]["holm_p"] < 0.05 else "#B9C2B4"
+        "#14675A" if ea[(r["register"], r["contrast"])]["robust_core"] else "#B9C2B4"
         for r in er
     ]
     ax.bar(x, [r["hedges_g"] for r in er], color=colors, width=0.6)
@@ -312,7 +388,7 @@ def main() -> None:
         a = ea[(r["register"], r["contrast"])]
         offset = 0.07 if r["hedges_g"] >= 0 else -0.19
         ax.text(i, r["hedges_g"] + offset,
-                f"ANCOVA p={a['holm_p']:.2f}", ha="center", fontsize=7)
+                f"p={a['holm_cr1']:.2f}", ha="center", fontsize=7)
     ax.axhline(0, color="gray", lw=0.8)
     ax.set_xticks(x)
     ax.set_xticklabels([f"{r['register']}\n{r['contrast']}" for r in er], fontsize=8)
