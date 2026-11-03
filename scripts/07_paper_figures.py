@@ -49,11 +49,11 @@ def per_track_positions(df, band, positions, center_positions):
 
 def fig_profiles(cand, brid):
     series = [
-        ("candombe high (chico)", cand, "chico", OKABE["high_c"], "-"),
-        ("candombe mid (repique)", cand, "repique", OKABE["mid_c"], "-"),
-        ("candombe low (piano)", cand, "piano", OKABE["low_c"], "-"),
-        ("samba high (tamborim range)", brid, "tamborim", OKABE["high_s"], "--"),
-        ("samba low (surdo range)", brid, "surdo", OKABE["low_s"], "--"),
+        (r"candombe high ($\it{chico}$)", cand, "chico", OKABE["high_c"], "-"),
+        (r"candombe mid ($\it{repique}$)", cand, "repique", OKABE["mid_c"], "-"),
+        (r"candombe low ($\it{piano}$)", cand, "piano", OKABE["low_c"], "-"),
+        (r"samba high ($\it{tamborim}$ range)", brid, "tamborim", OKABE["high_s"], "--"),
+        (r"samba low ($\it{surdo}$ range)", brid, "surdo", OKABE["low_s"], "--"),
     ]
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.9))
     for label, df, band, color, ls in series:
