@@ -1,8 +1,25 @@
 # Microtiming as a Multi-Level Fingerprint — Code & Derived Data
 
-Anonymized repository accompanying the LAMIR 2026 submission
+Code and derived data accompanying the LAMIR 2026 paper
 *"Is Microtiming a Genre Fingerprint? Timing Discriminability in Candombe
 and Samba Drumming"*.
+
+**Manuel Josué Malla Campoverde** &middot; **Eduardo Alejandro Tusa Jumbo**
+Universidad Técnica de Machala, Ecuador
+
+Presented at the 2nd Latin American Music Information Retrieval Workshop
+(LAMIR 2026), Belo Horizonte, Brazil.
+
+## Key results
+
+- Timing shape alone separates the two corpora: balanced accuracy **0.823**
+  under leave-one-pair-out CV, exact session-permutation **p = 0.024**.
+- Two contrasts — the mid-register *cliff* and the high-register *tail* —
+  survive a tempo-controlled permutation ANCOVA under **every**
+  cluster-respecting test statistic (p = 0.006, the permutation minimum).
+- The same six features identify individual candombe ensembles almost
+  perfectly (mean pairwise balanced accuracy **0.964**), so microtiming
+  acts as a fingerprint at more than one level of musical identity.
 
 ## What is here
 
@@ -72,5 +89,17 @@ Code under the MIT License (see `LICENSE`). The derived deviation tables
 are released under CC BY 4.0. Audio remains under the original corpora's
 terms; see the Candombe dataset and BRID publications.
 
----
-*This repository is anonymized for double-blind review.*
+## Citation
+
+```bibtex
+@inproceedings{malla2026microtiming,
+  title     = {Is Microtiming a Genre Fingerprint? Timing Discriminability
+               in Candombe and Samba Drumming},
+  author    = {Malla Campoverde, Manuel Josu{\'e} and
+               Tusa Jumbo, Eduardo Alejandro},
+  booktitle = {Proc. of the 2nd Latin American Music Information Retrieval
+               Workshop (LAMIR)},
+  address   = {Belo Horizonte, Brazil},
+  year      = {2026}
+}
+```

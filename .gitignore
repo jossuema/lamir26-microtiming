@@ -5,7 +5,7 @@ data/
 __pycache__/
 *.pyc
 .DS_Store
-# the paper itself stays out of the review repo (double-blind; submitted via CMT)
+# the paper sources stay out of this repo; the PDF is published in the proceedings
 paper/
 abstract.md
 LAMIR2026_template.tex

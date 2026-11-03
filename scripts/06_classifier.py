@@ -62,10 +62,10 @@ RNG_SEED = 20260825
 REGS = ["low", "mid", "high"]
 
 
-def make_logistic():
+def make_logistic(C: float = 1.0):
     return make_pipeline(
         StandardScaler(),
-        LogisticRegression(class_weight="balanced", C=1.0, max_iter=2000),
+        LogisticRegression(class_weight="balanced", C=C, max_iter=2000),
     )
 
 
@@ -244,6 +244,18 @@ def main() -> None:
 
     # sensitivity runs
     print("\nSENSITIVITY:")
+    # regularization strength: C=1 is the library default, fixed a priori
+    # rather than tuned -- with n=103 tracks in 11 groups, selecting C by CV
+    # would spend the same folds twice. The grid documents insensitivity.
+    print("  inverse-regularization C sweep (complete-case, LOPO):")
+    gog = feats.groupby("session").genre.first().to_dict()
+    for c_val in [0.01, 0.1, 1.0, 10.0, 100.0]:
+        b_c, a_c, _ = lopo_eval(X_t, y, groups, gog,
+                                lambda c=c_val: make_logistic(c))
+        print(f"    C={c_val:<6g} bal_acc={b_c:.3f} AUC={a_c:.3f}")
+        rows.append(dict(sample="complete-case", model=f"timing C={c_val:g}",
+                         lopo_bal=b_c, lopo_auc=a_c))
+
     run_suite(full, "full-data (imputed)")
     no_high = [c for c in ccols if "high" not in c]
     bal_nh, auc_nh, _ = lopo_eval(cc[no_high].to_numpy(), y, groups,
